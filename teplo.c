@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
 		mas_old[i] = (double*)calloc(SIZE, sizeof(double));
 
 	mas[0][0] = 10;
-	mas[SIZE-1][0] = 20;//1 -строки 2- стлб
+	mas[SIZE-1][0] = 20;//1 -Е„Е€Д‘Г®Д™ДЌ 2- Е„Е€Г«ГЎ
 	mas[0][SIZE-1] = 20;
 	mas[SIZE-1][SIZE-1] = 30;
 
