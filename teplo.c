@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
 		for (int j = 0; j < a1; j++)
 			mas_old[i][j] = mas[i][j];
 
-#pragma acc data copyin(err, a1, mas[0:a1][0:a1], mas_old[0:a1][0:a1])
+#pragma acc enter data copyin(err, argv, mas[0:argv][0:argv], mas_old[0:argv][0:argv])
 	while ((err > argc || iter ==1) && iter < a2) {
 		if (iter%100==0){
 			err = 0;
@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
 		err = 0;
 
 #pragma acc data present(mas_old, mas, err)
-#pragma acc parallel loop independent collapse(2)
+#pragma acc parallel loop independent collapse(1)
 		for (int i = 1; i < a1 - 1; i++) {
 			for (int j = 1; j < a1 - 1; j++) {
 				mas[i][j] = (mas_old[i - 1][j] + mas_old[i][j - 1] + mas_old[i + 1][j] + mas_old[i][j + 1]) / 4;
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
 	for (int i = 0; i < a1; i++)
 		free(mas[i]);
 	free(mas);
-
+#pragma acc exit data copyin(err, argv, mas[0:argv][0:argv], mas_old[0:argv][0:argv])
 	return 0;
 }
 
