@@ -4,41 +4,42 @@
 #include <stdlib.h>
 #include <time.h>
 
-int main(double argc, int argv, int argw) {
+int main(int argc, char* argv[]) {
 	clock_t start;
 	start = clock();
-
-	double** mas = (double**)malloc(argv * sizeof(double*));
-	for (int i = 0; i < argv; i++)
-		mas[i] = (double*)calloc(argv, sizeof(double));
+	int a1 = atoi(argv[1]);
+	int a2 = atoi(argv[2]);
+	double** mas = (double**)malloc(a1 * sizeof(double*));
+	for (int i = 0; i < a1; i++)
+		mas[i] = (double*)calloc(a1, sizeof(double));
 	
 
-	double** mas_old = (double**)malloc(argv * sizeof(double*));
-	for (int i = 0; i < argv; i++)
-		mas_old[i] = (double*)calloc(argv, sizeof(double));
+	double** mas_old = (double**)malloc(a1 * sizeof(double*));
+	for (int i = 0; i < a1; i++)
+		mas_old[i] = (double*)calloc(a1, sizeof(double));
 
 	mas[0][0] = 10;
-	mas[argv-1][0] = 20;//1 -строки 2- стлб
-	mas[0][argv-1] = 20;
-	mas[argv-1][argv-1] = 30;
+	mas[a1-1][0] = 20;//1 -строки 2- стлб
+	mas[0][a1-1] = 20;
+	mas[a1-1][a1-1] = 30;
 
-	for (int i = 1; i < argv-1; i++) {
-		mas[0][i] = mas[0][i-1]+ (mas[0][argv-1] - mas[0][0] )/ argv;
-		mas[i][0] = mas[i-1][0]+   (mas[argv-1][0] - mas[0][0]) / argv;
-		mas[argv-1][i] = mas[argv - 1][i-1]+  (mas[argv-1][argv-1] - mas[argv-1][0]) / argv;
-		mas[i][argv-1] = mas[i-1][argv - 1] + (mas[argv-1][argv-1] - mas[0][argv-1]) / argv;
+	for (int i = 1; i < a1-1; i++) {
+		mas[0][i] = mas[0][i-1]+ (mas[0][a1-1] - mas[0][0] )/ a1;
+		mas[i][0] = mas[i-1][0]+   (mas[a1-1][0] - mas[0][0]) / a1;
+		mas[a1-1][i] = mas[a1 - 1][i-1]+  (mas[a1-1][a1-1] - mas[a1-1][0]) / a1;
+		mas[i][a1-1] = mas[i-1][a1 - 1] + (mas[a1-1][a1-1] - mas[0][a1-1]) / a1;
 	}
 
 
 	int iter = 0;
 	double err = argc;  //10^(-6)
 
-	for (int i = 0; i < argv; i++) 
-		for (int j = 0; j < argv; j++)
+	for (int i = 0; i < a1; i++) 
+		for (int j = 0; j < a1; j++)
 			mas_old[i][j] = mas[i][j];
 
-#pragma acc data copyin(err, argv, mas[0:argv][0:argv], mas_old[0:argv][0:argv])
-	while ((err > argc || iter ==1) && iter < argw) {
+#pragma acc data copyin(err, a1, mas[0:a1][0:a1], mas_old[0:a1][0:a1])
+	while ((err > argc || iter ==1) && iter < a2) {
 		if (iter%100==0){
 			err = 0;
 #pragma acc update device(err)
@@ -48,8 +49,8 @@ int main(double argc, int argv, int argw) {
 
 #pragma acc data present(mas_old, mas, err)
 #pragma acc parallel loop independent collapse(2)
-		for (int i = 1; i < argv - 1; i++) {
-			for (int j = 1; j < argv - 1; j++) {
+		for (int i = 1; i < a1 - 1; i++) {
+			for (int j = 1; j < a1 - 1; j++) {
 				mas[i][j] = (mas_old[i - 1][j] + mas_old[i][j - 1] + mas_old[i + 1][j] + mas_old[i][j + 1]) / 4;
 				err = fmax(err, fabs(mas[i][j] - mas_old[i][j]));
 
@@ -74,10 +75,10 @@ int main(double argc, int argv, int argw) {
 	}
 	double t = (double)(clock() - start) / CLOCKS_PER_SEC;
 	printf(" time: %lf\n", t);
-	for (int i = 0; i < argv; i++)
+	for (int i = 0; i < a1; i++)
 		free(mas_old[i]);
 	free(mas_old);
-	for (int i = 0; i < argv; i++)
+	for (int i = 0; i < a1; i++)
 		free(mas[i]);
 	free(mas);
 
