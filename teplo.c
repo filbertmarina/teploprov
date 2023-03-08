@@ -71,7 +71,9 @@ int main() {
 		mas = mas_old;
 		mas_old = m;
 		iter += 1;
-		if (iter % 100 == 0 || iter == 1) {
+		if (iter % 100 == 0 && iter != 1) {
+			double t = (double)(clock() - start) / CLOCKS_PER_SEC;
+			printf(" time: %lf\n", t);
 			printf("%d  %lf", iter, err);
 			printf("\n");
 		}
