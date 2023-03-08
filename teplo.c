@@ -6,6 +6,7 @@
 int SIZE ;
 double err_max ;
 int iter_max ;
+
 int main() {
 	clock_t start;
 	start = clock();
@@ -45,43 +46,46 @@ int main() {
 			err = 0;
 #pragma acc update device(err)
 		}
-		iter += 1;
-		err = 0;
+		
+
 
 #pragma acc data present(mas_old, mas, err)
-#pragma acc parallel loop independent collapse(1)
+#pragma acc parallel loop independent collapse(2) reduction(max:err) async(3)
 		for (int i = 1; i < SIZE - 1; i++) {
 			for (int j = 1; j < SIZE - 1; j++) {
 				mas[i][j] = (mas_old[i - 1][j] + mas_old[i][j - 1] + mas_old[i + 1][j] + mas_old[i][j + 1]) / 4;
 				err = fmax(err, fabs(mas[i][j] - mas_old[i][j]));
 
-
+		
 			}
+		}
+#pragma acc wait(3)
 			if (iter % 100 == 0) {
 #pragma acc update host(err)
 			}
-		}
+		
 
 		
 
 		double **m= mas;
 		mas = mas_old;
 		mas_old = m;
-		
+		iter += 1;
 		if (iter % 100 == 0 || iter == 1) {
 			printf("%d  %lf", iter, err);
 			printf("\n");
 		}
 
 	}
-	double t = (double)(clock() - start) / CLOCKS_PER_SEC;
-	printf(" time: %lf\n", t);
+
 	for (int i = 0; i < SIZE; i++)
 		free(mas_old[i]);
 	free(mas_old);
 	for (int i = 0; i < SIZE; i++)
 		free(mas[i]);
 	free(mas);
+	double t = (double)(clock() - start) / CLOCKS_PER_SEC;
+	printf(" time: %lf\n", t);
 	return 0;
 }
 
